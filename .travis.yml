@@ -1,0 +1,18 @@
+language: python
+
+dist: jammy
+
+python:
+  - "3.11"
+
+jobs:
+  include:
+    - stage: "Gemini Models Test"
+      name: "Test All Gemini Models"
+
+      install:
+        - python -m pip install --upgrade pip
+        - pip install google-genai tabulate
+
+      script:
+        - python test_models.py
