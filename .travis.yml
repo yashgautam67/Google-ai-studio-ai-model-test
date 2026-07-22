@@ -5,14 +5,11 @@ dist: jammy
 python:
   - "3.11"
 
-jobs:
-  include:
-    - stage: "Gemini Models Test"
-      name: "Test All Gemini Models"
+install:
+  - pip install -r requirements.txt
 
-      install:
-        - python -m pip install --upgrade pip
-        - pip install google-genai tabulate
+script:
+  - python test_models.py
 
-      script:
-        - python test_models.py
+after_success:
+  - cat report.md
