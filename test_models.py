@@ -1,63 +1,89 @@
 import os
+import json
 import time
+
 from google import genai
 
-API_KEY = os.environ["GEMINI_API_KEY"]
+client = genai.Client(
+    api_key=os.environ["GEMINI_API_KEY"]
+)
 
-client = genai.Client(api_key=API_KEY)
+print("="*80)
+print("Fetching Available Models...")
+print("="*80)
 
-MODELS = [
-    "gemini-3.6-flash",
-    "gemini-3.5-flash",
-    "gemini-3-flash",
-    "gemini-3.5-flash-lite",
-    "gemini-3.1-flash-lite",
-    "gemini-2.5-flash",
-    "gemini-2.5-flash-lite",
-    "gemini-2-flash",
-    "gemini-2-flash-lite"
-]
+models = client.models.list()
 
-print("=" * 90)
-print("Gemini Models Health Report")
-print("=" * 90)
+results = []
 
-working = 0
-failed = 0
+for model in models:
 
-for model in MODELS:
+    name = model.name
 
-    print(f"\nTesting {model}")
+    # Sirf GenerateContent models test karna
+    if "generateContent" not in model.supported_actions:
+        continue
+
+    print(f"\nTesting {name}")
 
     start = time.time()
 
     try:
 
         response = client.models.generate_content(
-            model=model,
-            contents="Reply with only OK"
+            model=name,
+            contents="Reply only with OK"
         )
 
-        elapsed = round(time.time() - start, 2)
+        elapsed = round(time.time()-start,2)
 
-        print("Status  : PASS")
-        print("Time    :", elapsed, "sec")
-        print("Answer  :", response.text)
+        print("PASS")
 
-        working += 1
+        results.append({
+            "model": name,
+            "status": "PASS",
+            "time": elapsed,
+            "response": response.text
+        })
 
     except Exception as e:
 
-        print("Status  : FAIL")
-        print("Reason  :", str(e))
+        print("FAIL")
 
-        failed += 1
+        results.append({
+            "model": name,
+            "status": "FAIL",
+            "error": str(e)
+        })
 
-print("\n")
-print("=" * 90)
-print("SUMMARY")
-print("=" * 90)
 
-print("Working :", working)
-print("Failed  :", failed)
-print("Total   :", len(MODELS))
+# JSON Report
+
+with open("report.json","w") as f:
+    json.dump(results,f,indent=2)
+
+
+# Markdown Report
+
+with open("report.md","w") as f:
+
+    f.write("# Gemini Model Health Report\n\n")
+
+    f.write("| Model | Status | Time | Response/Error |\n")
+    f.write("|------|------|------|------|\n")
+
+    for r in results:
+
+        if r["status"]=="PASS":
+
+            f.write(
+                f"| {r['model']} | ✅ PASS | {r['time']} sec | {r['response']} |\n"
+            )
+
+        else:
+
+            f.write(
+                f"| {r['model']} | ❌ FAIL | - | {r['error']} |\n"
+            )
+
+print("\nDone.")
