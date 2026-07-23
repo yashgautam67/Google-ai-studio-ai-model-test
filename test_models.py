@@ -9,7 +9,7 @@ client = genai.Client(
 )
 
 print("="*80)
-print("Fetching Available Models...")
+print("Fetching Available Models....")
 print("="*80)
 
 models = client.models.list()
