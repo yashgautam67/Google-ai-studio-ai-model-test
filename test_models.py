@@ -69,7 +69,7 @@ with open("report.md","w") as f:
 
     f.write("# Gemini Model Health Report\n\n")
 
-    f.write("| Model | Status | Time | Response/Error |\n")
+    f.write("| Model | Status | Time | Response/Errors |\n")
     f.write("|------|------|------|------|\n")
 
     for r in results:
